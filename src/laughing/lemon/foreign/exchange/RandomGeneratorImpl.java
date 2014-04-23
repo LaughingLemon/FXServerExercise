@@ -1,7 +1,12 @@
 package laughing.lemon.foreign.exchange;
-//Created by Shaun
 
-//wrapper around Math.random to allow mocking
+/**
+ * wrapper around Math.random to allow mocking
+ *
+ * @author <Authors name>
+ * @version 1.0
+ * @since <pre>Apr 20, 2014</pre>
+ */
 public class RandomGeneratorImpl implements RandomGenerator {
     public double random() {
         return Math.random();

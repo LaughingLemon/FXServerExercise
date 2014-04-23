@@ -1,9 +1,22 @@
 package laughing.lemon.foreign.exchange;
-//Created by Shaun
+/**
+ * main foreign exchange server class
+ *
+ * @author <Authors name>
+ * @version 1.0
+ * @since <pre>Apr 20, 2014</pre>
+ */
+
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import fdeng.assignment.server.EnvironmentSocketServerInterface;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class ForeignExchange {
     //used for formatting the exchange rate values to strings
@@ -11,9 +24,14 @@ public class ForeignExchange {
     private List<ExchangeRate> exchangeRates = new ArrayList<ExchangeRate>();
     private List<ExchangeRateGenerator> exchangeRateGenerators = new ArrayList<ExchangeRateGenerator>();
     private RandomGenerator randomGenerator;
+    private EnvironmentSocketServerInterface socketServer;
+    private int timeInterval = 30; //seconds
 
-    public ForeignExchange(RandomGenerator randomGenerator) {
+    @Inject
+    public ForeignExchange(RandomGenerator randomGenerator,
+                           EnvironmentSocketServerInterface socketServer) {
         this.randomGenerator = randomGenerator;
+        this.socketServer = socketServer;
         //sets up the initial exchange rates
         exchangeRates.add(new ExchangeRate("EUR", "GBP", 0.8371));
         exchangeRates.add(new ExchangeRate("USD", "EUR", 0.73335));
@@ -75,33 +93,72 @@ public class ForeignExchange {
         }
     }
 
-    @Override
-    public String toString() {
+    public String exchangeRatesAsString() {
         String returnValue = "";
+        //return all the exchange rates...
         for(ExchangeRate rate : exchangeRates) {
             returnValue += rate.getFromCurrency() + "," +
                     rate.getToCurrency() + "," +
                     decimalFormat.format(rate.getCurrentRate());
-            returnValue += '\t';
+            returnValue += ';';
+            //...and their inverses
             returnValue += rate.getToCurrency() + "," +
                     rate.getFromCurrency() + "," +
                     decimalFormat.format(rate.getInverseCurrentRate());
-            returnValue += '\t';
+            returnValue += ';';
         }
+        System.out.println(returnValue);
         return returnValue;
     }
 
+
+    //clock to regularly update values
+    Timer clock = new Timer();
+
+    //interval is a minute
+    private static final int SECOND_INTERVAL = 1000;
+    //delay is zero
+    private static final int CLOCK_DELAY = 0;
+
+    //task run by the timer (effectively a thread)
+    private class DataChange extends TimerTask {
+        public void run() {
+            //change one of the exchange rates
+            changeAnyExchangeRate();
+            //send the exchange rates to the clients
+            socketServer.sendMessage(exchangeRatesAsString());
+        }
+    }
+
+    private void slightSleep(long time) {
+        //sleep for a short while
+        try {
+            Thread.sleep(time);
+        } catch(InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public int getTimeInterval() {
+        return timeInterval;
+    }
+
+    public void startClock() {
+        //kicks off the network socket process
+        socketServer.start();
+        //kicks off the clock process
+        clock.schedule(new DataChange(), CLOCK_DELAY, getTimeInterval() * SECOND_INTERVAL);
+        //slight delay to allow the data to be read
+        slightSleep(250);
+    }
+
     public static void main(String[] args) {
-        ForeignExchange foreignExchange = new ForeignExchange(new RandomGeneratorImpl());
-        System.out.println(foreignExchange);
-        foreignExchange.changeAnyExchangeRate();
-        System.out.println(foreignExchange);
-        foreignExchange.changeAnyExchangeRate();
-        System.out.println(foreignExchange);
-        foreignExchange.changeAnyExchangeRate();
-        System.out.println(foreignExchange);
-        foreignExchange.changeAnyExchangeRate();
-        System.out.println(foreignExchange);
+        //create a guice dependency injector
+        Injector injector = Guice.createInjector(new ExchangeRateGuiceModule());
+        //get an instance of the foreign exchange object
+        ForeignExchange foreignExchange = injector.getInstance(ForeignExchange.class);
+        //start the timer
+        foreignExchange.startClock();
     }
 
 }

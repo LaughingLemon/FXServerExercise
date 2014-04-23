@@ -1,5 +1,12 @@
 package laughing.lemon.foreign.exchange;
-//Created by Shaun
+/**
+ * wrapper around the apache maths normal distribution
+ * class to create random foreign exchange rates
+ *
+ * @author <Authors name>
+ * @version 1.0
+ * @since <pre>Apr 20, 2014</pre>
+ */
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 

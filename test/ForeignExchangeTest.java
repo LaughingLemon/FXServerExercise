@@ -21,7 +21,7 @@ public class ForeignExchangeTest {
     @Test
     public void testChangeExchangeRate() throws Exception {
         RandomGenerator randomGenerator = mock(RandomGenerator.class);
-        ForeignExchange foreignExchange = new ForeignExchange(randomGenerator);
+        ForeignExchange foreignExchange = new ForeignExchange(randomGenerator, null);
         when(randomGenerator.random()).thenReturn(0.3);
         foreignExchange.changeExchangeRate("EUR", "USD");
         assertEquals(0.72930, foreignExchange.findExchangeRate("EUR", "USD").getCurrentRate(), 0.0001);
@@ -33,7 +33,7 @@ public class ForeignExchangeTest {
     @Test
     public void testChangeAnyExchangeRate() throws Exception {
         RandomGenerator randomGenerator = mock(RandomGenerator.class);
-        ForeignExchange foreignExchange = new ForeignExchange(randomGenerator);
+        ForeignExchange foreignExchange = new ForeignExchange(randomGenerator, null);
         when(randomGenerator.randomNumber(2)).thenReturn(1);
         when(randomGenerator.random()).thenReturn(0.7);
         foreignExchange.changeAnyExchangeRate();
