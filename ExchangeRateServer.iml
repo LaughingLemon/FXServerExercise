@@ -12,6 +12,7 @@
     <orderEntry type="library" name="math" level="application" />
     <orderEntry type="library" name="junit" level="application" />
     <orderEntry type="library" name="mockito" level="application" />
+    <orderEntry type="library" name="EnvironmentSocket" level="project" />
   </component>
 </module>
 

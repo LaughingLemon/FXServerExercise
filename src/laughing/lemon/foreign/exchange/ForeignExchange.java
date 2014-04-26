@@ -10,6 +10,8 @@ package laughing.lemon.foreign.exchange;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import fdeng.assignment.common.EnvironmentSocketEvent;
+import fdeng.assignment.common.EnvironmentSocketMessage;
 import fdeng.assignment.server.EnvironmentSocketServerInterface;
 
 import java.text.DecimalFormat;
@@ -32,6 +34,7 @@ public class ForeignExchange {
                            EnvironmentSocketServerInterface socketServer) {
         this.randomGenerator = randomGenerator;
         this.socketServer = socketServer;
+        this.socketServer.setMessageHandler(this.messageHandler);
         //sets up the initial exchange rates
         exchangeRates.add(new ExchangeRate("EUR", "GBP", 0.8371));
         exchangeRates.add(new ExchangeRate("USD", "EUR", 0.73335));
@@ -111,6 +114,12 @@ public class ForeignExchange {
         return returnValue;
     }
 
+    //handler object for messages from the clients
+    private EnvironmentSocketEvent messageHandler = new EnvironmentSocketEvent() {
+        public void messageReceived(EnvironmentSocketMessage e) {
+            socketServer.sendMessage("DEAL");
+        }
+    };
 
     //clock to regularly update values
     Timer clock = new Timer();
